@@ -309,7 +309,7 @@
   <!-- ═══ TOPBAR ═══ -->
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="logo" href="#" onclick="showTab('herramientas');return false;">
+      <a class="logo" href="#" onclick="showTab('scripts');return false;">
         <div class="logo-mark">GT</div>
         <div>
           <div class="logo-text">GT Scripts</div>
@@ -317,15 +317,15 @@
         </div>
       </a>
       <nav class="nav">
-        <button class="nav-btn active" data-tab="herramientas" onclick="showTab('herramientas')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-          Herramientas
-          <span class="nav-badge">2</span>
-        </button>
-        <button class="nav-btn" data-tab="scripts" onclick="showTab('scripts')">
+        <button class="nav-btn active" data-tab="scripts" onclick="showTab('scripts')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
           Scripts
           <span class="nav-badge" id="navCount">10</span>
+        </button>
+        <button class="nav-btn" data-tab="herramientas" onclick="showTab('herramientas')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          Herramientas
+          <span class="nav-badge">2</span>
         </button>
         <button class="nav-btn" data-tab="donar" onclick="showTab('donar')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
@@ -338,7 +338,7 @@
   <main class="main">
 
     <!-- ── HERRAMIENTAS (generadores interactivos) ── -->
-    <div class="tab-panel active" id="tab-herramientas">
+    <div class="tab-panel" id="tab-herramientas">
       <div class="hero" style="padding-bottom:18px;">
         <div class="hero-eyebrow">Guerras Tribales · es99</div>
         <h1 class="hero-title">Herramientas <span>tácticas</span></h1>
@@ -512,7 +512,7 @@
     </div>
 
     <!-- ── SCRIPTS (biblioteca) ── -->
-    <div class="tab-panel" id="tab-scripts">
+    <div class="tab-panel active" id="tab-scripts">
       <div class="hero">
         <div class="hero-eyebrow">Guerras Tribales · es99</div>
         <h1 class="hero-title">Biblioteca de <span>scripts</span></h1>
