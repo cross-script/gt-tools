@@ -325,7 +325,7 @@
         <button class="nav-btn" data-tab="herramientas" onclick="showTab('herramientas')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
           Herramientas
-          <span class="nav-badge">2</span>
+          <span class="nav-badge">3</span>
         </button>
         <button class="nav-btn" data-tab="donar" onclick="showTab('donar')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
@@ -348,6 +348,7 @@
       <div class="tool-tabs" id="toolTabs">
         <button class="tool-tab active" data-tool="fakes" onclick="showTool('fakes')">Generador de fakes</button>
         <button class="tool-tab" data-tool="planner" onclick="showTool('planner')">Calculadora de tiempos</button>
+        <button class="tool-tab" data-tool="analyzer" onclick="showTool('analyzer')">Analizador de tropas</button>
       </div>
 
       <!-- FAKES -->
@@ -506,6 +507,144 @@
                 <div class="error-box">Introduce las coordenadas para calcular.</div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ANALIZADOR DE TROPAS -->
+      <div class="tool-panel" id="tool-analyzer">
+        <style>
+          #twa .twa-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px;}
+          #twa .twa-file{cursor:pointer;}
+          #twa .twa-file input{display:none;}
+          #twa details.twa-help{margin-top:12px;}
+          #twa details.twa-help summary{cursor:pointer;color:var(--text3);font-size:12px;font-family:var(--font-mono);}
+          #twa details.twa-help p{font-size:12px;color:var(--text2);line-height:1.6;margin-top:8px;}
+          #twa .twa-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:10px;}
+          #twa .twa-stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;}
+          #twa .twa-stat .n{font-size:24px;font-weight:800;font-family:var(--font-mono);line-height:1;}
+          #twa .twa-stat .l{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);margin-top:6px;}
+          #twa .twa-stat.off{border-left:3px solid var(--orange2);}
+          #twa .twa-stat.def{border-left:3px solid var(--blue2);}
+          #twa .twa-stat.mix{border-left:3px solid var(--amber);}
+          #twa .twa-stat.tot{border-left:3px solid var(--green);}
+          #twa .twa-stat.pl{border-left:3px solid var(--cyan);}
+          #twa .twa-stat.sn{border-left:3px solid #c084fc;}
+          #twa .twa-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+          #twa .twa-search{flex:1;min-width:200px;}
+          #twa .twa-seg{display:inline-flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+          #twa .twa-seg button{border:none;background:none;color:var(--text3);padding:8px 14px;font-family:var(--font-ui);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
+          #twa .twa-seg button.active{background:rgba(59,130,246,0.12);color:var(--blue2);}
+          #twa .twa-chk{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;}
+          #twa .twa-pills{display:flex;gap:8px;flex-wrap:wrap;padding:0 24px 20px;}
+          #twa .twa-pill{background:var(--bg2);border:1px solid var(--border);border-radius:999px;padding:5px 12px;font-size:12px;cursor:pointer;color:var(--text3);user-select:none;transition:all .15s;}
+          #twa .twa-pill:hover{border-color:var(--border2);}
+          #twa .twa-pill.active{background:rgba(59,130,246,0.12);border-color:rgba(59,130,246,0.35);color:var(--blue2);}
+          #twa .twa-pill .c{opacity:0.6;font-family:var(--font-mono);font-size:10px;}
+          #twa .twa-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;font-family:var(--font-mono);}
+          #twa .twa-badge.off{background:rgba(249,115,22,0.14);color:var(--orange2);}
+          #twa .twa-badge.def{background:rgba(59,130,246,0.14);color:var(--blue2);}
+          #twa .twa-badge.mixed{background:rgba(245,158,11,0.14);color:var(--amber);}
+          #twa .twa-badge.empty{background:rgba(100,116,139,0.14);color:var(--text3);}
+          #twa .twa-player{background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);margin-bottom:12px;overflow:hidden;}
+          #twa .twa-phead{display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;flex-wrap:wrap;}
+          #twa .twa-phead:hover{background:var(--card2);}
+          #twa .twa-caret{color:var(--text3);transition:transform .15s;font-size:11px;}
+          #twa .twa-player.open .twa-caret{transform:rotate(90deg);}
+          #twa .twa-pname{font-size:15px;font-weight:700;flex:1;min-width:140px;}
+          #twa .twa-bar{height:7px;border-radius:5px;overflow:hidden;background:var(--bg);display:flex;width:150px;flex-shrink:0;}
+          #twa .twa-bar i{display:block;height:100%;}
+          #twa .twa-bar .o{background:var(--orange);} #twa .twa-bar .m{background:var(--amber);} #twa .twa-bar .d{background:var(--blue);}
+          #twa .twa-counts{display:flex;gap:6px;flex-wrap:wrap;font-size:11px;font-family:var(--font-mono);}
+          #twa .twa-counts span{padding:2px 7px;border-radius:6px;background:var(--bg2);}
+          #twa .twa-counts .o{color:var(--orange2);} #twa .twa-counts .d{color:var(--blue2);}
+          #twa .twa-counts .m{color:var(--amber);} #twa .twa-counts .e{color:var(--text3);}
+          #twa .twa-pbody{display:none;border-top:1px solid var(--border);}
+          #twa .twa-player.open .twa-pbody{display:block;}
+          #twa .twa-pbtns{display:flex;gap:8px;flex-wrap:wrap;padding:12px 18px;background:var(--card2);}
+          #twa table{width:100%;border-collapse:collapse;font-size:12.5px;}
+          #twa thead th{text-align:left;padding:8px 14px;color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--border);font-family:var(--font-mono);}
+          #twa tbody td{padding:7px 14px;border-bottom:1px solid rgba(255,255,255,0.03);}
+          #twa tbody tr:hover{background:var(--card2);}
+          #twa td.coord{font-family:var(--font-mono);}
+          #twa td.num{text-align:right;font-family:var(--font-mono);}
+          #twa .twa-snob{color:#c084fc;font-weight:700;}
+          #twa .twa-attack{border-color:rgba(249,115,22,0.25);}
+          #twa .twa-attack-out{min-height:80px;}
+          #twa .twa-empty{text-align:center;color:var(--text3);padding:30px;font-size:13px;}
+          #twaToast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--orange2);color:var(--text);padding:10px 18px;border-radius:var(--radius);opacity:0;transition:.25s;pointer-events:none;z-index:2000;font-size:13px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,0.5);}
+          #twaToast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+        </style>
+        <div id="twa">
+
+          <!-- 1 · ENTRADA -->
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-header">
+              <div class="card-title">1 · Pega el CSV de tropas</div>
+              <div class="card-desc">Exportado desde GT Tools. Clasifica cada pueblo como OFF o DEF y lo agrupa por jugador.</div>
+            </div>
+            <div class="card-body">
+              <textarea class="textarea" id="twaInput" rows="6" placeholder="Coords,Player,spear,sword,axe,archer,spy,light,marcher,heavy,ram,catapult,knight,snob,militia,&#10;500|500,Jugador1,3375,3340,0,3382,300,0,0,1500,0,0,0,0,0,&#10;500|501,Jugador1,222,230,5048,87,42,2004,413,0,400,50,0,0,0,"></textarea>
+              <div class="twa-row">
+                <button class="btn btn-primary btn-sm" id="twaAnalyze">Analizar</button>
+                <label class="btn btn-ghost btn-sm twa-file">📁 Subir .csv<input type="file" id="twaFile" accept=".csv,.txt"></label>
+                <button class="btn btn-ghost btn-sm" id="twaLoadLast">Cargar último</button>
+                <button class="btn btn-ghost btn-sm" id="twaClear">Limpiar</button>
+              </div>
+              <details class="twa-help">
+                <summary>¿Qué cuenta como OFF / DEF?</summary>
+                <p><b>DEF</b> = lanza + espada + arquero + caballería pesada · <b>OFF</b> = hacha + ligera + arquero a caballo + ariete + catapulta. Espía, paladín y milicia se ignoran. Ratio OFF ≥ 65% → OFF · ≤ 35% → DEF · resto → Mixto.</p>
+              </details>
+            </div>
+          </div>
+
+          <!-- RESULTADOS -->
+          <div id="twaResults" style="display:none;">
+
+            <div class="twa-stats" id="twaStats"></div>
+
+            <div class="card" style="margin:16px 0;">
+              <div class="card-body twa-controls">
+                <input type="text" class="input twa-search" id="twaSearch" placeholder="🔍 Buscar jugador o coordenada…">
+                <div class="twa-seg" id="twaTypeFilter">
+                  <button data-t="all" class="active">Todos</button>
+                  <button data-t="off">OFF</button>
+                  <button data-t="def">DEF</button>
+                  <button data-t="mixed">Mixto</button>
+                </div>
+                <label class="twa-chk"><input type="checkbox" id="twaShowEmpty"> Ver vacíos</label>
+                <div style="flex:1"></div>
+                <button class="btn btn-ghost btn-sm" id="twaExpand">Expandir</button>
+                <button class="btn btn-ghost btn-sm" id="twaCollapse">Colapsar</button>
+                <button class="btn btn-copy btn-sm" id="twaExport">⬇ CSV</button>
+              </div>
+              <div class="twa-pills" id="twaPlayerPills"></div>
+            </div>
+
+            <div class="card twa-attack" style="margin-bottom:16px;">
+              <div class="card-header">
+                <div class="card-title">⚔️ Preparar ataque</div>
+                <div class="card-desc">Selecciona jugadores y copia un bloque de coordenadas listo para el scheduler.</div>
+              </div>
+              <div class="card-body">
+                <div class="twa-pills" id="twaAtkPills" style="padding:0;max-height:160px;overflow:auto;"></div>
+                <div class="twa-row" style="margin-top:12px;">
+                  <div class="twa-seg" id="twaAtkType">
+                    <button data-t="off" class="active">OFF</button>
+                    <button data-t="def">DEF</button>
+                    <button data-t="all">OFF+DEF</button>
+                  </div>
+                  <button class="btn btn-ghost btn-sm" id="twaAtkAll">Marcar todos</button>
+                  <button class="btn btn-ghost btn-sm" id="twaAtkClear">Limpiar</button>
+                  <button class="btn btn-copy btn-sm" id="twaAtkCopy">📋 Copiar bloque</button>
+                  <span class="card-desc" id="twaAtkCount"></span>
+                </div>
+                <textarea class="textarea twa-attack-out" id="twaAtkOut" readonly placeholder="Las coordenadas aparecerán aquí…"></textarea>
+              </div>
+            </div>
+
+            <div id="twaPlayers"></div>
+
           </div>
         </div>
       </div>
@@ -1336,6 +1475,192 @@ renderScripts();
 buildUnitGrid();
 updateFakes();
 updateTravel();
+</script>
+
+<!-- ═══ ANALIZADOR DE TROPAS POR JUGADOR ═══ -->
+<script>
+(function(){
+  const root = document.getElementById('twa'); if(!root) return;
+  const q = s => root.querySelector(s), qa = s => Array.from(root.querySelectorAll(s));
+  const LS = 'twa_last_csv';
+  let DATA=null, typeFilter='all', search='', activePlayer=null, showEmpty=false, atkType='off';
+  const selRows=new Set(), atkSel=new Set();
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const ord = {off:0, mixed:1, def:2, empty:3};
+
+  let toastEl = document.getElementById('twaToast');
+  if(!toastEl){ toastEl = document.createElement('div'); toastEl.id='twaToast'; document.body.appendChild(toastEl); }
+  function toast(m){ toastEl.textContent=m; toastEl.classList.add('show'); clearTimeout(toastEl._t); toastEl._t=setTimeout(()=>toastEl.classList.remove('show'),1800); }
+  function copy(t,m){ if(!t){toast('Nada que copiar');return;} const ok=()=>toast(m||'Copiado ✔');
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok).catch(()=>fb(t,ok)); else fb(t,ok); }
+  function fb(t,ok){ const ta=document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');ok();}catch(e){toast('No se pudo copiar');} document.body.removeChild(ta); }
+
+  function parseCSV(text){
+    const players={}; const lines=text.split(/\r?\n/); let parsed=0;
+    for(const raw of lines){
+      const line=raw.trim(); if(!line) continue;
+      if(/^coords\s*,/i.test(line)) continue;
+      const c=line.split(','); if(c.length<14) continue;
+      const coord=c[0].trim(); if(!/^\d+\|\d+$/.test(coord)) continue;
+      const player=c[1].trim(); if(!player) continue;
+      const n=i=>{ const v=parseInt(c[i],10); return isNaN(v)?0:v; };
+      const r={spear:n(2),sword:n(3),axe:n(4),archer:n(5),spy:n(6),light:n(7),marcher:n(8),heavy:n(9),ram:n(10),cat:n(11),knight:n(12),snob:n(13)};
+      const defScore=r.spear+r.sword+r.archer+r.heavy;
+      const offScore=r.axe+r.light+r.marcher+r.ram+r.cat;
+      const total=defScore+offScore;
+      let type;
+      if(total===0) type='empty';
+      else if(offScore>0&&defScore===0) type='off';
+      else if(defScore>0&&offScore===0) type='def';
+      else { const ratio=offScore/total; type = ratio>=0.65?'off':(ratio<=0.35?'def':'mixed'); }
+      if(!players[player]) players[player]={name:player,villages:[],stats:{total:0,off:0,def:0,mixed:0,empty:0,totalSnobs:0,totalRams:0,totalCats:0}};
+      const P=players[player];
+      P.villages.push({coord,type,offScore,defScore,snob:r.snob,rams:r.ram,cats:r.cat});
+      P.stats.total++; P.stats[type]++; P.stats.totalSnobs+=r.snob; P.stats.totalRams+=r.ram; P.stats.totalCats+=r.cat;
+      parsed++;
+    }
+    const g={totalVillages:0,totalPlayers:0,totalOff:0,totalDef:0,totalMixed:0,totalEmpty:0,totalSnobs:0};
+    for(const k in players){ const P=players[k];
+      P.villages.sort((a,b)=>(ord[a.type]-ord[b.type])||(b.offScore+b.defScore)-(a.offScore+a.defScore));
+      g.totalVillages+=P.stats.total; g.totalOff+=P.stats.off; g.totalDef+=P.stats.def; g.totalMixed+=P.stats.mixed; g.totalEmpty+=P.stats.empty; g.totalSnobs+=P.stats.totalSnobs; g.totalPlayers++;
+    }
+    return {players, globalStats:g, parsedCount:parsed};
+  }
+
+  function renderStats(){
+    const g=DATA.globalStats;
+    const cards=[['tot',g.totalVillages,'Pueblos'],['off',g.totalOff,'OFF'],['def',g.totalDef,'DEF'],['mix',g.totalMixed,'Mixtos'],['tot',g.totalEmpty,'Vacíos'],['pl',g.totalPlayers,'Jugadores'],['sn',g.totalSnobs,'Nobles']];
+    q('#twaStats').innerHTML = cards.map(c=>`<div class="twa-stat ${c[0]}"><div class="n">${c[1].toLocaleString('es')}</div><div class="l">${c[2]}</div></div>`).join('');
+  }
+
+  function renderPlayerPills(){
+    const names=Object.keys(DATA.players).sort((a,b)=>DATA.players[b].stats.total-DATA.players[a].stats.total);
+    let h=`<div class="twa-pill ${activePlayer===null?'active':''}" data-pl="__all__">Todos <span class="c">${names.length}</span></div>`;
+    h+=names.map(nm=>`<div class="twa-pill ${activePlayer===nm?'active':''}" data-pl="${esc(nm)}">${esc(nm)} <span class="c">${DATA.players[nm].stats.total}</span></div>`).join('');
+    q('#twaPlayerPills').innerHTML=h;
+    qa('#twaPlayerPills .twa-pill').forEach(p=>p.addEventListener('click',()=>{ const v=p.dataset.pl; activePlayer = v==='__all__'?null:v; renderPlayerPills(); renderPlayers(); }));
+  }
+
+  function villageVisible(v){ if(v.type==='empty'&&!showEmpty) return false; if(typeFilter!=='all'&&v.type!==typeFilter) return false; return true; }
+  function playerMatch(P){ if(!search) return true; const s=search.toLowerCase(); return P.name.toLowerCase().includes(s)||P.villages.some(v=>v.coord.includes(s)); }
+
+  function renderPlayers(){
+    const cont=q('#twaPlayers');
+    let names=Object.keys(DATA.players);
+    if(activePlayer) names=names.filter(nm=>nm===activePlayer);
+    names=names.filter(nm=>playerMatch(DATA.players[nm])).sort((a,b)=>DATA.players[b].stats.total-DATA.players[a].stats.total);
+    if(!names.length){ cont.innerHTML='<div class="twa-empty">Sin resultados para el filtro actual.</div>'; return; }
+    cont.innerHTML=names.map(nm=>cardHTML(DATA.players[nm])).join('');
+    wire();
+  }
+
+  function cardHTML(P){
+    const s=P.stats, ne=(s.off+s.def+s.mixed)||1;
+    const oP=s.off/ne*100, mP=s.mixed/ne*100, dP=s.def/ne*100;
+    const sActive = search && !P.name.toLowerCase().includes(search.toLowerCase());
+    const rows=P.villages.filter(villageVisible).filter(v=>!sActive||v.coord.includes(search.toLowerCase()));
+    const rh=rows.map(v=>{
+      const checked=selRows.has(P.name+'||'+v.coord)?'checked':'';
+      const snob=v.snob>0?`<span class="twa-snob">${v.snob}</span>`:'0';
+      return `<tr><td><input type="checkbox" class="twa-rowchk" data-pl="${esc(P.name)}" data-coord="${v.coord}" ${checked}></td><td class="coord">${v.coord}</td><td><span class="twa-badge ${v.type}">${v.type}</span></td><td class="num">${v.offScore.toLocaleString('es')}</td><td class="num">${v.defScore.toLocaleString('es')}</td><td class="num">${snob}</td><td class="num">${v.rams.toLocaleString('es')}</td><td class="num">${v.cats.toLocaleString('es')}</td></tr>`;
+    }).join('');
+    return `<div class="twa-player" data-pl="${esc(P.name)}">
+      <div class="twa-phead">
+        <span class="twa-caret">▶</span>
+        <span class="twa-pname">${esc(P.name)}</span>
+        <div class="twa-bar" title="OFF ${s.off} · Mix ${s.mixed} · DEF ${s.def}"><i class="o" style="width:${oP}%"></i><i class="m" style="width:${mP}%"></i><i class="d" style="width:${dP}%"></i></div>
+        <div class="twa-counts"><span>Σ ${s.total}</span><span class="o">OFF ${s.off}</span><span class="d">DEF ${s.def}</span><span class="m">MIX ${s.mixed}</span>${s.empty?`<span class="e">∅ ${s.empty}</span>`:''}${s.totalSnobs?`<span class="twa-snob">👑 ${s.totalSnobs}</span>`:''}</div>
+      </div>
+      <div class="twa-pbody">
+        <div class="twa-pbtns">
+          <button class="btn btn-copy btn-sm" data-act="off" data-pl="${esc(P.name)}">Copiar OFF (${s.off})</button>
+          <button class="btn btn-copy btn-sm" data-act="def" data-pl="${esc(P.name)}">Copiar DEF (${s.def})</button>
+          <button class="btn btn-ghost btn-sm" data-act="sel" data-pl="${esc(P.name)}">Copiar selección</button>
+          <button class="btn btn-ghost btn-sm" data-act="selall" data-pl="${esc(P.name)}">Marcar visibles</button>
+          <button class="btn btn-ghost btn-sm" data-act="selnone" data-pl="${esc(P.name)}">Desmarcar</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table><thead><tr><th></th><th>Coord</th><th>Tipo</th><th>OFF</th><th>DEF</th><th>Noble</th><th>Arietes</th><th>Katas</th></tr></thead>
+          <tbody>${rh||'<tr><td colspan="8" class="twa-empty" style="padding:14px;">Sin pueblos para el filtro.</td></tr>'}</tbody></table>
+        </div>
+      </div></div>`;
+  }
+
+  function wire(){
+    qa('#twaPlayers .twa-player').forEach(card=>{
+      card.querySelector('.twa-phead').addEventListener('click',e=>{ if(e.target.closest('button')) return; card.classList.toggle('open'); });
+    });
+    qa('#twaPlayers .twa-pbtns button').forEach(b=>b.addEventListener('click',()=>action(b.dataset.act,b.dataset.pl,b)));
+    qa('#twaPlayers .twa-rowchk').forEach(chk=>chk.addEventListener('change',()=>{ const k=chk.dataset.pl+'||'+chk.dataset.coord; if(chk.checked) selRows.add(k); else selRows.delete(k); }));
+  }
+
+  function coordsByType(P,type){ return P.villages.filter(v=>type==='all'?(v.type!=='empty'):v.type===type).map(v=>v.coord); }
+
+  function action(act,pl,btn){
+    const P=DATA.players[pl]; if(!P) return;
+    if(act==='off'){ const c=coordsByType(P,'off'); copy(c.join(' '),`${c.length} coords OFF de ${pl}`); }
+    else if(act==='def'){ const c=coordsByType(P,'def'); copy(c.join(' '),`${c.length} coords DEF de ${pl}`); }
+    else if(act==='sel'){ const c=P.villages.filter(v=>selRows.has(P.name+'||'+v.coord)).map(v=>v.coord); copy(c.join(' '),`${c.length} coords seleccionadas`); }
+    else if(act==='selall'){ const card=btn.closest('.twa-player'); card.querySelectorAll('.twa-rowchk').forEach(chk=>{ chk.checked=true; selRows.add(chk.dataset.pl+'||'+chk.dataset.coord); }); toast('Pueblos visibles marcados'); }
+    else if(act==='selnone'){ const card=btn.closest('.twa-player'); card.querySelectorAll('.twa-rowchk').forEach(chk=>{ chk.checked=false; selRows.delete(chk.dataset.pl+'||'+chk.dataset.coord); }); toast('Selección limpiada'); }
+  }
+
+  function renderAtk(){
+    const names=Object.keys(DATA.players).sort((a,b)=>DATA.players[b].stats.off-DATA.players[a].stats.off);
+    q('#twaAtkPills').innerHTML=names.map(nm=>`<div class="twa-pill ${atkSel.has(nm)?'active':''}" data-pl="${esc(nm)}">${esc(nm)} <span class="c">⚔${DATA.players[nm].stats.off}/🛡${DATA.players[nm].stats.def}</span></div>`).join('');
+    qa('#twaAtkPills .twa-pill').forEach(p=>p.addEventListener('click',()=>{ const nm=p.dataset.pl; if(atkSel.has(nm)) atkSel.delete(nm); else atkSel.add(nm); renderAtk(); atkOut(); }));
+  }
+  function atkOut(){
+    let c=[]; atkSel.forEach(nm=>{ const P=DATA.players[nm]; if(P) c=c.concat(coordsByType(P,atkType)); });
+    q('#twaAtkOut').value=c.join(' ');
+    q('#twaAtkCount').textContent=`${c.length} coords · ${atkSel.size} jugadores`;
+  }
+
+  function exportCSV(){
+    let out='coord,player,type,offScore,defScore,snob,rams,cats\n';
+    for(const nm in DATA.players) for(const v of DATA.players[nm].villages){
+      const pl=/[",]/.test(nm)?`"${nm.replace(/"/g,'""')}"`:nm;
+      out+=`${v.coord},${pl},${v.type},${v.offScore},${v.defScore},${v.snob},${v.rams},${v.cats}\n`;
+    }
+    const blob=new Blob([out],{type:'text/csv;charset=utf-8'}); const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download='tw-analisis-tropas.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    toast('CSV exportado ✔');
+  }
+
+  function analyze(text){
+    if(!text||!text.trim()){ toast('Pega el CSV primero'); return; }
+    DATA=parseCSV(text);
+    if(!DATA.parsedCount){ toast('No se detectaron líneas válidas'); return; }
+    localStorage.setItem(LS,text);
+    selRows.clear(); atkSel.clear();
+    q('#twaResults').style.display='block';
+    renderStats(); renderPlayerPills(); renderAtk(); atkOut(); renderPlayers();
+    toast(`${DATA.parsedCount} pueblos · ${DATA.globalStats.totalPlayers} jugadores`);
+  }
+  function reset(){
+    DATA=null; typeFilter='all'; search=''; activePlayer=null; showEmpty=false; selRows.clear(); atkSel.clear();
+    q('#twaInput').value=''; q('#twaSearch').value=''; q('#twaShowEmpty').checked=false;
+    qa('#twaTypeFilter button').forEach((b,i)=>b.classList.toggle('active',i===0));
+    q('#twaResults').style.display='none';
+  }
+
+  q('#twaAnalyze').addEventListener('click',()=>analyze(q('#twaInput').value));
+  q('#twaClear').addEventListener('click',reset);
+  q('#twaLoadLast').addEventListener('click',()=>{ const l=localStorage.getItem(LS); if(!l){toast('No hay análisis guardado');return;} q('#twaInput').value=l; analyze(l); });
+  q('#twaFile').addEventListener('change',e=>{ const f=e.target.files[0]; if(!f) return; const rd=new FileReader(); rd.onload=ev=>{ q('#twaInput').value=ev.target.result; analyze(ev.target.result); }; rd.readAsText(f); });
+  q('#twaSearch').addEventListener('input',e=>{ search=e.target.value.trim(); renderPlayers(); });
+  q('#twaShowEmpty').addEventListener('change',e=>{ showEmpty=e.target.checked; renderPlayers(); });
+  qa('#twaTypeFilter button').forEach(b=>b.addEventListener('click',()=>{ qa('#twaTypeFilter button').forEach(x=>x.classList.remove('active')); b.classList.add('active'); typeFilter=b.dataset.t; renderPlayers(); }));
+  q('#twaExpand').addEventListener('click',()=>qa('#twaPlayers .twa-player').forEach(c=>c.classList.add('open')));
+  q('#twaCollapse').addEventListener('click',()=>qa('#twaPlayers .twa-player').forEach(c=>c.classList.remove('open')));
+  q('#twaExport').addEventListener('click',exportCSV);
+  qa('#twaAtkType button').forEach(b=>b.addEventListener('click',()=>{ qa('#twaAtkType button').forEach(x=>x.classList.remove('active')); b.classList.add('active'); atkType=b.dataset.t; atkOut(); }));
+  q('#twaAtkAll').addEventListener('click',()=>{ if(!DATA) return; Object.keys(DATA.players).forEach(nm=>atkSel.add(nm)); renderAtk(); atkOut(); });
+  q('#twaAtkClear').addEventListener('click',()=>{ atkSel.clear(); renderAtk(); atkOut(); });
+  q('#twaAtkCopy').addEventListener('click',()=>copy(q('#twaAtkOut').value,'Bloque de ataque copiado ✔'));
+
+  const last=localStorage.getItem(LS); if(last) q('#twaInput').value=last;
+})();
 </script>
 </body>
 </html>
