@@ -327,7 +327,7 @@
         <button class="nav-btn" data-tab="herramientas" onclick="showTab('herramientas')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
           Herramientas
-          <span class="nav-badge">4</span>
+          <span class="nav-badge">5</span>
         </button>
         <button class="nav-btn" data-tab="donar" onclick="showTab('donar')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
@@ -352,6 +352,7 @@
         <button class="tool-tab" data-tool="planner" onclick="showTool('planner')">Calculadora de tiempos</button>
         <button class="tool-tab" data-tool="analyzer" onclick="showTool('analyzer')">Analizador de tropas</button>
         <button class="tool-tab" data-tool="ofensivas" onclick="showTool('ofensivas')">Planificador de ofensivas</button>
+        <button class="tool-tab" data-tool="reparto" onclick="showTool('reparto')">Reparto de ofensivas</button>
       </div>
 
       <!-- FAKES -->
@@ -751,6 +752,85 @@
               </div>
               <div class="card-body" style="padding:0;">
                 <div style="overflow-x:auto;"><table id="ofeTable"></table></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- REPARTO DE OFENSIVAS -->
+      <div class="tool-panel" id="tool-reparto">
+        <style>
+          #rep .rep-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+          #rep .rep-field{flex:1;min-width:150px;}
+          #rep .rep-field.sm{flex:0 0 150px;min-width:150px;}
+          #rep .rep-seg{display:inline-flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+          #rep .rep-seg button{border:none;background:none;color:var(--text3);padding:8px 16px;font-family:var(--font-ui);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
+          #rep .rep-seg button.active{background:rgba(59,130,246,0.12);color:var(--blue2);}
+          #rep table{width:100%;border-collapse:collapse;font-size:12.5px;}
+          #rep thead th{text-align:left;padding:8px 12px;color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border);font-family:var(--font-mono);white-space:nowrap;}
+          #rep tbody td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:top;}
+          #rep tbody tr:hover{background:var(--card2);}
+          #rep td.mono{font-family:var(--font-mono);white-space:nowrap;}
+          #rep td.owners{font-family:var(--font-mono);font-size:11.5px;color:var(--text2);line-height:1.6;}
+          #rep .rep-num{font-family:var(--font-mono);font-weight:700;}
+          #rep .rep-num.off{color:var(--orange2);} #rep .rep-num.nob{color:#c084fc;}
+          #rep .rep-noble{color:#c084fc;}
+          #rep .rep-zero{color:var(--text3);}
+          #rep .rep-help{font-size:11px;color:var(--text3);margin-top:8px;line-height:1.7;}
+          #rep .rep-help code{background:var(--bg);padding:1px 5px;border-radius:4px;color:var(--cyan);font-size:10.5px;font-family:var(--font-mono);}
+          #repToast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--orange2);color:var(--text);padding:10px 18px;border-radius:var(--radius);opacity:0;transition:.25s;pointer-events:none;z-index:2000;font-size:13px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,0.5);}
+          #repToast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+        </style>
+        <div id="rep">
+
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-header"><div class="card-title">Modo de reparto</div><div class="card-desc">Reparte el off de los participantes entre los objetivos. Sin coords ni tiempos: solo cantidades.</div></div>
+            <div class="card-body">
+              <div class="rep-row">
+                <div class="rep-field"><label class="field-label">Modo del off</label><select class="select" id="repMode"><option value="fijo">Fijo por objetivo</option><option value="auto">Automático equitativo</option></select></div>
+                <div class="rep-field sm"><label class="field-label">Off por objetivo (modo fijo)</label><input type="number" class="input" id="repOffPer" value="4" min="1"></div>
+              </div>
+              <div class="rep-help"><b>Fijo:</b> cada objetivo recibe esa cantidad de off; te dice cuántos objetivos cubres del todo. <b>Automático:</b> reparte todo el off entre todos los objetivos a partes iguales. Los <span class="rep-noble">nobles</span> se reparten siempre a partes iguales entre todos los objetivos.</div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-header"><div class="card-title">1 · Objetivos</div><div class="card-desc">Una coordenada por línea (lo demás de la línea se ignora).</div></div>
+            <div class="card-body">
+              <textarea class="textarea" id="repTargets" rows="4" placeholder="500|500&#10;500|520&#10;512|498"></textarea>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-header"><div class="card-title">2 · Participantes</div><div class="card-desc">Una línea por jugador: nombre, nº de off, nº de nobles.</div></div>
+            <div class="card-body">
+              <textarea class="textarea" id="repPlayers" rows="6" placeholder="Pepe, 3, 1&#10;Juan, 2, 0&#10;tu.vaquis.sexy 4 2&#10;Giovas%2A 5 1"></textarea>
+              <div class="rep-help">Por línea: <code>nombre</code> <code>off</code> <code>nobles</code> (separados por coma o espacio). El nombre puede tener puntos, %, espacios… los dos últimos números son off y nobles. Si omites el de nobles, se toma 0.</div>
+            </div>
+          </div>
+
+          <div class="rep-row" style="margin-bottom:16px;">
+            <button class="btn btn-primary" id="repRun">⚔️ Repartir ofensiva</button>
+            <button class="btn btn-ghost btn-sm" id="repClear">Limpiar</button>
+          </div>
+
+          <div id="repResults" style="display:none;">
+            <div class="stats-row" id="repSummary"></div>
+            <div class="card">
+              <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+                <div class="rep-seg" id="repView">
+                  <button data-v="target" class="active">Por objetivo</button>
+                  <button data-v="player">Por jugador</button>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button class="btn btn-copy btn-sm" id="repCopyView">📋 Copiar tabla</button>
+                  <button class="btn btn-copy btn-sm" id="repCopyOrders">📋 Órdenes por jugador</button>
+                </div>
+              </div>
+              <div class="card-body" style="padding:0;">
+                <div style="overflow-x:auto;"><table id="repTable"></table></div>
               </div>
             </div>
           </div>
@@ -1958,6 +2038,168 @@ updateTravel();
   q('#ofeHoursNone').addEventListener('click',()=>setHours(new Set()));
   q('#ofeHoursNight').addEventListener('click',()=>{const s=new Set([...Array(24).keys()]);[2,3,4,5,6,7].forEach(h=>s.delete(h));setHours(s);});
   ['#ofeWorldSpeed','#ofeUnitSpeed','#ofeArrival','#ofeDefAtk','#ofeDefNoble','#ofeDefUnit','#ofeDefRole','#ofeDefDelay','#ofeTargets','#ofeOrigins'].forEach(id=>{const el=q(id);if(el)el.addEventListener('change',save);});
+})();
+</script>
+
+<!-- ═══ REPARTO DE OFENSIVAS ═══ -->
+<script>
+(function(){
+  const root=document.getElementById('rep'); if(!root) return;
+  const q=s=>root.querySelector(s), qa=s=>Array.from(root.querySelectorAll(s));
+  const LS='rep_state_v1';
+  const COORD=/(\d{1,4})\|(\d{1,4})/;
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  let toastEl=document.getElementById('repToast');
+  if(!toastEl){toastEl=document.createElement('div');toastEl.id='repToast';document.body.appendChild(toastEl);}
+  function toast(m){toastEl.textContent=m;toastEl.classList.add('show');clearTimeout(toastEl._t);toastEl._t=setTimeout(()=>toastEl.classList.remove('show'),2000);}
+  function copy(t,m){if(!t){toast('Nada que copiar');return;}const ok=()=>toast(m||'Copiado ✔');if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok).catch(()=>fb(t,ok));else fb(t,ok);}
+  function fb(t,ok){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');ok();}catch(e){toast('No se pudo copiar');}document.body.removeChild(ta);}
+
+  function parseTargets(){const out=[];q('#repTargets').value.split(/\r?\n/).forEach(raw=>{const m=raw.match(COORD);if(m)out.push({coord:m[0]});});return out;}
+  function parsePlayers(){
+    const out=[];
+    q('#repPlayers').value.split(/\r?\n/).forEach(raw=>{
+      const line=raw.trim(); if(!line)return;
+      const m=line.match(/^(.*?)[\s,]+(\d+)(?:[\s,]+(\d+))?\s*$/);
+      if(!m)return;
+      const name=m[1].trim().replace(/[,\s]+$/,''); if(!name)return;
+      const off=+m[2], nobles=m[3]!==undefined?+m[3]:0;
+      out.push({name,off,nobles});
+    });
+    return out;
+  }
+  // reparte por rondas (round-robin por jugador) para esparcir a cada jugador entre objetivos distintos
+  function interleave(items){const arr=items.map(i=>({name:i.name,n:i.count})).filter(a=>a.n>0);const seq=[];let rem=arr.reduce((s,a)=>s+a.n,0);while(rem>0){for(const a of arr){if(a.n>0){seq.push(a.name);a.n--;rem--;}}}return seq;}
+
+  let RESULT=null, view='target';
+  function run(){
+    const targets=parseTargets(), players=parsePlayers();
+    if(!targets.length){toast('Añade al menos un objetivo');return;}
+    if(!players.length){toast('Añade participantes (nombre, off, nobles)');return;}
+    const M=targets.length;
+    const mode=q('#repMode').value;
+    const offPer=Math.max(1,parseInt(q('#repOffPer').value,10)||1);
+    const totalOff=players.reduce((s,p)=>s+p.off,0);
+    const totalNob=players.reduce((s,p)=>s+p.nobles,0);
+
+    const offUnits=interleave(players.map(p=>({name:p.name,count:p.off})));
+    const nobUnits=interleave(players.map(p=>({name:p.name,count:p.nobles})));
+
+    const offAlloc=targets.map(()=>[]);
+    const nobAlloc=targets.map(()=>[]);
+    let leftoverOff=0;
+
+    if(mode==='auto'){
+      offUnits.forEach((o,i)=>offAlloc[i%M].push(o));
+    } else {
+      let ti=0;
+      for(const o of offUnits){
+        while(ti<M && offAlloc[ti].length>=offPer) ti++;
+        if(ti>=M){leftoverOff++;continue;}
+        offAlloc[ti].push(o);
+      }
+    }
+    // nobles: siempre a partes iguales entre todos los objetivos
+    nobUnits.forEach((o,i)=>nobAlloc[i%M].push(o));
+
+    // vista por jugador
+    const pmap={};
+    players.forEach(p=>pmap[p.name]={name:p.name,off:p.off,nobles:p.nobles,offT:{},nobT:{},offUsed:0,nobUsed:0});
+    offAlloc.forEach((list,ti)=>list.forEach(n=>{const c=targets[ti].coord;pmap[n].offT[c]=(pmap[n].offT[c]||0)+1;pmap[n].offUsed++;}));
+    nobAlloc.forEach((list,ti)=>list.forEach(n=>{const c=targets[ti].coord;pmap[n].nobT[c]=(pmap[n].nobT[c]||0)+1;pmap[n].nobUsed++;}));
+
+    const coveredFull=offAlloc.filter(a=>a.length>=offPer).length;
+    const emptyTargets=offAlloc.filter(a=>a.length===0).length;
+    RESULT={targets,players,offAlloc,nobAlloc,pmap,M,mode,offPer,totalOff,totalNob,leftoverOff,coveredFull,emptyTargets};
+    save(); render();
+    toast(`Reparto: ${totalOff} off · ${totalNob} nobles · ${M} objetivos`);
+  }
+
+  function groupCount(list){const m={};list.forEach(n=>m[n]=(m[n]||0)+1);return Object.entries(m).map(([n,c])=>c>1?`${esc(n)}×${c}`:esc(n)).join(', ');}
+  function groupCountPlain(list){const m={};list.forEach(n=>m[n]=(m[n]||0)+1);return Object.entries(m).map(([n,c])=>c>1?`${n}×${c}`:n).join(', ');}
+
+  function render(){
+    if(!RESULT)return;
+    const r=RESULT;
+    q('#repResults').style.display='block';
+    const avgOff=(r.totalOff/r.M);
+    q('#repSummary').innerHTML=
+      `<span class="stat-chip orange">${r.totalOff} off</span>`+
+      `<span class="stat-chip" style="background:rgba(168,85,247,0.1);color:#c084fc;border:1px solid rgba(168,85,247,0.25);">${r.totalNob} nobles</span>`+
+      `<span class="stat-chip blue">${r.M} objetivos</span>`+
+      (r.mode==='fijo'
+        ? `<span class="stat-chip green">${r.coveredFull}/${r.M} cubiertos (${r.offPer} off/obj)</span>`+(r.leftoverOff?`<span class="stat-chip orange">${r.leftoverOff} off sobrantes</span>`:'')
+        : `<span class="stat-chip green">~${avgOff.toFixed(1)} off/objetivo</span>`)+
+      (r.emptyTargets?`<span class="stat-chip red">${r.emptyTargets} objetivos sin off</span>`:'');
+
+    if(view==='target'){
+      const body=r.targets.map((t,ti)=>{
+        const off=r.offAlloc[ti], nob=r.nobAlloc[ti];
+        return `<tr>
+          <td class="mono">${t.coord}</td>
+          <td><span class="rep-num off">${off.length}</span></td>
+          <td class="owners">${off.length?groupCount(off):'<span class="rep-zero">—</span>'}</td>
+          <td><span class="rep-num nob">${nob.length}</span></td>
+          <td class="owners">${nob.length?groupCount(nob):'<span class="rep-zero">—</span>'}</td>
+        </tr>`;
+      }).join('');
+      q('#repTable').innerHTML=`<thead><tr><th>Objetivo</th><th>Off</th><th>Reparto off</th><th>Nobles</th><th>Reparto nobles</th></tr></thead><tbody>${body}</tbody>`;
+    } else {
+      const body=r.players.map(p=>{
+        const pm=r.pmap[p.name];
+        const offT=Object.entries(pm.offT).map(([c,n])=>n>1?`${c}×${n}`:c).join(', ');
+        const nobT=Object.entries(pm.nobT).map(([c,n])=>n>1?`${c}×${n}`:c).join(', ');
+        return `<tr>
+          <td>${esc(p.name)}</td>
+          <td><span class="rep-num off">${pm.offUsed}</span><span class="rep-zero">/${p.off}</span></td>
+          <td class="owners">${offT||'<span class="rep-zero">—</span>'}</td>
+          <td><span class="rep-num nob">${pm.nobUsed}</span><span class="rep-zero">/${p.nobles}</span></td>
+          <td class="owners">${nobT||'<span class="rep-zero">—</span>'}</td>
+        </tr>`;
+      }).join('');
+      q('#repTable').innerHTML=`<thead><tr><th>Jugador</th><th>Off</th><th>Objetivos off</th><th>Nobles</th><th>Objetivos nobles</th></tr></thead><tbody>${body}</tbody>`;
+    }
+    qa('#repView button').forEach(b=>b.classList.toggle('active',b.dataset.v===view));
+  }
+
+  function copyView(){
+    if(!RESULT)return;
+    const r=RESULT; let out='';
+    if(view==='target'){
+      out='Objetivo\tOff\tReparto off\tNobles\tReparto nobles\n';
+      r.targets.forEach((t,ti)=>{out+=`${t.coord}\t${r.offAlloc[ti].length}\t${groupCountPlain(r.offAlloc[ti])}\t${r.nobAlloc[ti].length}\t${groupCountPlain(r.nobAlloc[ti])}\n`;});
+    } else {
+      out='Jugador\tOff\tObjetivos off\tNobles\tObjetivos nobles\n';
+      r.players.forEach(p=>{const pm=r.pmap[p.name];const offT=Object.entries(pm.offT).map(([c,n])=>n>1?`${c}×${n}`:c).join(', ');const nobT=Object.entries(pm.nobT).map(([c,n])=>n>1?`${c}×${n}`:c).join(', ');out+=`${p.name}\t${pm.offUsed}/${p.off}\t${offT}\t${pm.nobUsed}/${p.nobles}\t${nobT}\n`;});
+    }
+    copy(out,'Tabla copiada ✔');
+  }
+  function copyOrders(){
+    if(!RESULT)return;
+    const r=RESULT;
+    const out=r.players.map(p=>{
+      const pm=r.pmap[p.name];
+      const offT=Object.entries(pm.offT).map(([c,n])=>n>1?`${c} x${n}`:c).join(', ');
+      const nobT=Object.entries(pm.nobT).map(([c,n])=>n>1?`${c} x${n}`:c).join(', ');
+      let line=`${p.name} → OFF: ${offT||'-'}`;
+      if(p.nobles)line+=` | NOBLES: ${nobT||'-'}`;
+      return line;
+    }).join('\n');
+    copy(out,'Órdenes por jugador copiadas ✔');
+  }
+
+  function save(){try{localStorage.setItem(LS,JSON.stringify({mode:q('#repMode').value,offPer:q('#repOffPer').value,targets:q('#repTargets').value,players:q('#repPlayers').value}));}catch(e){}}
+  function load(){try{const s=JSON.parse(localStorage.getItem(LS));if(!s)return;if(s.mode)q('#repMode').value=s.mode;if(s.offPer!=null)q('#repOffPer').value=s.offPer;if(s.targets)q('#repTargets').value=s.targets;if(s.players)q('#repPlayers').value=s.players;}catch(e){}}
+  function clearAll(){q('#repTargets').value='';q('#repPlayers').value='';q('#repResults').style.display='none';RESULT=null;save();toast('Limpiado');}
+
+  load();
+  q('#repRun').addEventListener('click',run);
+  q('#repClear').addEventListener('click',clearAll);
+  q('#repCopyView').addEventListener('click',copyView);
+  q('#repCopyOrders').addEventListener('click',copyOrders);
+  qa('#repView button').forEach(b=>b.addEventListener('click',()=>{view=b.dataset.v;render();}));
+  ['#repMode','#repOffPer','#repTargets','#repPlayers'].forEach(id=>{const el=q(id);if(el)el.addEventListener('change',save);});
 })();
 </script>
 </body>
