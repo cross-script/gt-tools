@@ -327,7 +327,7 @@
         <button class="nav-btn" data-tab="herramientas" onclick="showTab('herramientas')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
           Herramientas
-          <span class="nav-badge">3</span>
+          <span class="nav-badge">4</span>
         </button>
         <button class="nav-btn" data-tab="donar" onclick="showTab('donar')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
@@ -351,6 +351,7 @@
         <button class="tool-tab active" data-tool="fakes" onclick="showTool('fakes')">Generador de fakes</button>
         <button class="tool-tab" data-tool="planner" onclick="showTool('planner')">Calculadora de tiempos</button>
         <button class="tool-tab" data-tool="analyzer" onclick="showTool('analyzer')">Analizador de tropas</button>
+        <button class="tool-tab" data-tool="ofensivas" onclick="showTool('ofensivas')">Planificador de ofensivas</button>
       </div>
 
       <!-- FAKES -->
@@ -648,6 +649,112 @@
             <div id="twaPlayers"></div>
 
           </div>
+        </div>
+      </div>
+
+      <!-- PLANIFICADOR DE OFENSIVAS -->
+      <div class="tool-panel" id="tool-ofensivas">
+        <style>
+          #ofe .ofe-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+          #ofe .ofe-field{flex:1;min-width:130px;}
+          #ofe .ofe-field.sm{flex:0 0 100px;min-width:100px;}
+          #ofe .ofe-field label{margin-bottom:6px;}
+          #ofe .ofe-hours{display:grid;grid-template-columns:repeat(12,1fr);gap:5px;}
+          @media(max-width:700px){#ofe .ofe-hours{grid-template-columns:repeat(6,1fr);}}
+          #ofe .ofe-hour{padding:7px 0;text-align:center;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text3);font-family:var(--font-mono);font-size:11px;cursor:pointer;user-select:none;transition:all .12s;}
+          #ofe .ofe-hour:hover{border-color:var(--border2);}
+          #ofe .ofe-hour.on{background:rgba(59,130,246,0.15);border-color:rgba(59,130,246,0.4);color:var(--blue2);}
+          #ofe table{width:100%;border-collapse:collapse;font-size:12.5px;}
+          #ofe thead th{text-align:left;padding:8px 10px;color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border);font-family:var(--font-mono);white-space:nowrap;}
+          #ofe tbody td{padding:6px 10px;border-bottom:1px solid rgba(255,255,255,0.03);font-family:var(--font-mono);white-space:nowrap;}
+          #ofe tbody tr:hover{background:var(--card2);}
+          #ofe tr.warn td{background:rgba(245,158,11,0.07);}
+          #ofe .ofe-badge{display:inline-block;padding:1px 7px;border-radius:5px;font-size:10px;font-weight:700;text-transform:uppercase;}
+          #ofe .ofe-badge.atk{background:rgba(249,115,22,0.16);color:var(--orange2);}
+          #ofe .ofe-badge.noble{background:rgba(168,85,247,0.18);color:#c084fc;}
+          #ofe .ofe-badge.sup{background:rgba(59,130,246,0.16);color:var(--blue2);}
+          #ofe .ofe-help{font-size:11px;color:var(--text3);margin-top:8px;line-height:1.7;}
+          #ofe .ofe-help code{background:var(--bg);padding:1px 5px;border-radius:4px;color:var(--cyan);font-size:10.5px;font-family:var(--font-mono);}
+          #ofe .ofe-fill{display:flex;gap:6px;flex-wrap:wrap;font-family:var(--font-mono);font-size:11px;margin-bottom:16px;}
+          #ofe .ofe-fill span{padding:3px 9px;border-radius:6px;background:var(--bg2);border:1px solid var(--border);}
+          #ofe .ofe-fill span.full{border-color:rgba(34,197,94,0.4);color:var(--green);}
+          #ofe .ofe-fill span.part{border-color:rgba(245,158,11,0.4);color:var(--amber);}
+          #ofeToast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--orange2);color:var(--text);padding:10px 18px;border-radius:var(--radius);opacity:0;transition:.25s;pointer-events:none;z-index:2000;font-size:13px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,0.5);}
+          #ofeToast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+        </style>
+        <div id="ofe">
+
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-header"><div class="card-title">Velocidad del mundo</div><div class="card-desc">Ajusta según tu servidor (es99 suele ir a 1/1, salvo eventos).</div></div>
+            <div class="card-body">
+              <div class="ofe-row">
+                <div class="ofe-field sm"><label class="field-label">Vel. mundo</label><input type="number" class="input" id="ofeWorldSpeed" value="1" min="0.1" step="0.1"></div>
+                <div class="ofe-field sm"><label class="field-label">Vel. unidades</label><input type="number" class="input" id="ofeUnitSpeed" value="1" min="0.1" step="0.1"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-header"><div class="card-title">1 · Objetivos</div><div class="card-desc">Una coordenada por línea. La hora de llegada es cuándo deben impactar todos los ataques.</div></div>
+            <div class="card-body">
+              <div class="ofe-row" style="margin-bottom:12px;">
+                <div class="ofe-field"><label class="field-label">Hora de llegada (impacto)</label><input type="text" class="input" id="ofeArrival" placeholder="DD-MM-YYYY HH:mm:ss" value="13-05-2026 09:00:00"></div>
+                <div class="ofe-field sm"><label class="field-label">Ataques/obj.</label><input type="number" class="input" id="ofeDefAtk" value="4" min="0"></div>
+                <div class="ofe-field sm"><label class="field-label">Nobles/obj.</label><input type="number" class="input" id="ofeDefNoble" value="0" min="0"></div>
+              </div>
+              <textarea class="textarea" id="ofeTargets" rows="4" placeholder="500|500&#10;500|501 4 1   (4 ataques, 1 noble)&#10;500|502 6 0 @ 13-05-2026 09:00:05"></textarea>
+              <div class="ofe-help">Por línea: <code>coord</code> y, opcional, <code>ataques nobles apoyos</code>. Hora propia con <code>@ DD-MM-YYYY HH:mm:ss</code>. Si omites números, se usan los valores de arriba.</div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-header"><div class="card-title">2 · Pueblos origen</div><div class="card-desc">Tus pueblos que lanzan. Una coordenada por línea + su tropa más lenta.</div></div>
+            <div class="card-body">
+              <div class="ofe-row" style="margin-bottom:12px;">
+                <div class="ofe-field"><label class="field-label">Tropa más lenta (def.)</label><select class="select" id="ofeDefUnit"></select></div>
+                <div class="ofe-field"><label class="field-label">Rol (def.)</label><select class="select" id="ofeDefRole"><option value="atk">Atacar</option><option value="sup">Apoyar</option></select></div>
+                <div class="ofe-field sm"><label class="field-label">Retraso (seg)</label><input type="number" class="input" id="ofeDefDelay" value="0" min="0"></div>
+              </div>
+              <textarea class="textarea" id="ofeOrigins" rows="5" placeholder="480|490&#10;481|490 ariete&#10;482|491 hacha atacar 0&#10;483|492 noble&#10;484|493 pesada apoyar 30"></textarea>
+              <div class="ofe-help">Por línea: <code>coord</code> + opcional <code>tropa</code> (lanza, hacha, ariete, ligera, pesada, noble…), <code>rol</code> (atacar/apoyar/noble) y <code>retraso</code> en seg. <code>noble</code> usa velocidad de noble (35 min/campo).</div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-header"><div class="card-title">3 · Franjas horarias de lanzamiento</div><div class="card-desc">Marca las horas en las que puedes estar conectado para lanzar. Si no caben, se amplía la tolerancia en pasos de 5 min.</div></div>
+            <div class="card-body">
+              <div class="ofe-hours" id="ofeHours"></div>
+              <div class="ofe-row" style="margin-top:12px;">
+                <button class="btn btn-ghost btn-sm" id="ofeHoursAll">Todas</button>
+                <button class="btn btn-ghost btn-sm" id="ofeHoursNone">Ninguna</button>
+                <button class="btn btn-ghost btn-sm" id="ofeHoursNight">Quitar 02–07h</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="ofe-row" style="margin-bottom:16px;">
+            <button class="btn btn-primary" id="ofePlan">⚔️ Planificar ofensiva</button>
+            <div style="flex:0 0 auto;"><select class="select" id="ofeSort" style="width:auto;"><option value="launch">Ordenar por lanzamiento</option><option value="target">Ordenar por objetivo</option></select></div>
+            <button class="btn btn-ghost btn-sm" id="ofeClear">Limpiar</button>
+          </div>
+
+          <div id="ofeResults" style="display:none;">
+            <div class="stats-row" id="ofeSummary"></div>
+            <div class="ofe-fill" id="ofeFill"></div>
+            <div class="card">
+              <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+                <div><div class="card-title">Plan de lanzamientos</div><div class="card-desc" id="ofePlanDesc"></div></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button class="btn btn-copy btn-sm" id="ofeCopyCsv">⬇ CSV</button>
+                  <button class="btn btn-copy btn-sm" id="ofeCopyBB">📋 BBCode</button>
+                </div>
+              </div>
+              <div class="card-body" style="padding:0;">
+                <div style="overflow-x:auto;"><table id="ofeTable"></table></div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -1662,6 +1769,195 @@ updateTravel();
   q('#twaAtkCopy').addEventListener('click',()=>copy(q('#twaAtkOut').value,'Bloque de ataque copiado ✔'));
 
   const last=localStorage.getItem(LS); if(last) q('#twaInput').value=last;
+})();
+</script>
+
+<!-- ═══ PLANIFICADOR DE OFENSIVAS (Mass Attack Planner) ═══ -->
+<script>
+(function(){
+  const root=document.getElementById('ofe'); if(!root) return;
+  const q=s=>root.querySelector(s), qa=s=>Array.from(root.querySelectorAll(s));
+  const LS='ofe_state_v1';
+  const UNIT_MIN={spear:18,sword:22,axe:18,archer:18,spy:9,light:10,marcher:10,heavy:11,ram:30,catapult:30,knight:10,snob:35};
+  const UNIT_LABEL={spear:'Lanza',sword:'Espada',axe:'Hacha',archer:'Arquero',spy:'Espía',light:'Ligera',marcher:'Arq. caballo',heavy:'Pesada',ram:'Ariete',catapult:'Catapulta',knight:'Paladín',snob:'Noble'};
+  const UNIT_ALIAS={lanza:'spear',spear:'spear',espada:'sword',sword:'sword',hacha:'axe',axe:'axe',arquero:'archer',archer:'archer',espia:'spy','espía':'spy',spy:'spy',ligera:'light',light:'light',marcher:'marcher',pesada:'heavy',heavy:'heavy',ariete:'ram',ram:'ram',cata:'catapult',catapulta:'catapult',catapult:'catapult',paladin:'knight','paladín':'knight',knight:'knight',noble:'snob',snob:'snob'};
+  const ROLE_ALIAS={atacar:'atk',ataque:'atk',atk:'atk',off:'atk',apoyar:'sup',apoyo:'sup',sup:'sup',def:'sup',noble:'noble',nobles:'noble'};
+  const COORD=/(\d{1,4})\|(\d{1,4})/;
+
+  let toastEl=document.getElementById('ofeToast');
+  if(!toastEl){toastEl=document.createElement('div');toastEl.id='ofeToast';document.body.appendChild(toastEl);}
+  function toast(m){toastEl.textContent=m;toastEl.classList.add('show');clearTimeout(toastEl._t);toastEl._t=setTimeout(()=>toastEl.classList.remove('show'),2000);}
+  function copy(t,m){if(!t){toast('Nada que copiar');return;}const ok=()=>toast(m||'Copiado ✔');if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok).catch(()=>fb(t,ok));else fb(t,ok);}
+  function fb(t,ok){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');ok();}catch(e){toast('No se pudo copiar');}document.body.removeChild(ta);}
+
+  function parseDateTime(v){const t=(v||'').trim();const p=t.split(/\s+/);if(p.length<2)return null;const tp=p[1].split(':').map(Number);if(tp.some(isNaN))return null;const dp=(p[0].includes('-')?p[0].split('-'):p[0].split('/')).map(Number);if(dp.length!==3||dp.some(isNaN))return null;let d,m,y;if(String(dp[0]).length===4){y=dp[0];m=dp[1];d=dp[2];}else{d=dp[0];m=dp[1];y=dp[2];}return new Date(y,m-1,d,tp[0],tp[1],tp[2]||0);}
+  function fmtDT(d){if(!d||isNaN(d.getTime()))return '—';const p=n=>String(n).padStart(2,'0');return `${p(d.getDate())}-${p(d.getMonth()+1)}-${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;}
+  function fmtDur(ms){const s=Math.round(ms/1000);const sec=s%60,min=Math.floor(s/60)%60,h=Math.floor(s/3600)%24,dd=Math.floor(s/86400);const p=n=>String(n).padStart(2,'0');return dd>0?`${dd}d ${p(h)}:${p(min)}:${p(sec)}`:`${p(h)}:${p(min)}:${p(sec)}`;}
+  function distXY(a,b){return Math.sqrt((b.x-a.x)**2+(b.y-a.y)**2);}
+
+  let enabledHours=new Set([...Array(24).keys()]);
+  function buildHours(){const g=q('#ofeHours');g.innerHTML='';for(let h=0;h<24;h++){const d=document.createElement('div');d.className='ofe-hour'+(enabledHours.has(h)?' on':'');d.textContent=String(h).padStart(2,'0');d.addEventListener('click',()=>{if(enabledHours.has(h))enabledHours.delete(h);else enabledHours.add(h);d.classList.toggle('on');save();});g.appendChild(d);}}
+  function setHours(set){enabledHours=set;buildHours();save();}
+  function hourAllowed(date,tol){if(enabledHours.size===0||enabledHours.size===24)return true;const mins=date.getHours()*60+date.getMinutes()+date.getSeconds()/60;for(const h of enabledHours){if(mins>=h*60-tol&&mins<(h+1)*60+tol)return true;}return false;}
+  function strictWin(date){if(enabledHours.size===0||enabledHours.size===24)return true;return enabledHours.has(date.getHours());}
+
+  function parseTargets(){
+    const defArr=parseDateTime(q('#ofeArrival').value);
+    const defAtk=Math.max(0,parseInt(q('#ofeDefAtk').value,10)||0);
+    const defNob=Math.max(0,parseInt(q('#ofeDefNoble').value,10)||0);
+    const out=[];
+    q('#ofeTargets').value.split(/\r?\n/).forEach(raw=>{
+      const line=raw.trim(); if(!line)return;
+      const m=line.match(COORD); if(!m)return;
+      let rest=line, arrival=defArr;
+      const at=rest.split('@'); if(at[1]){const d=parseDateTime(at[1].trim());if(d)arrival=d;rest=at[0];}
+      rest=rest.replace(m[0],' ');
+      const nums=(rest.match(/\d+/g)||[]).map(Number);
+      out.push({coord:m[0],x:+m[1],y:+m[2],arrival,
+        attacks:nums[0]!==undefined?nums[0]:defAtk,
+        nobles:nums[1]!==undefined?nums[1]:defNob,
+        support:nums[2]!==undefined?nums[2]:0});
+    });
+    return out;
+  }
+  function parseOrigins(){
+    const defUnit=q('#ofeDefUnit').value, defRole=q('#ofeDefRole').value, defDelay=Math.max(0,parseInt(q('#ofeDefDelay').value,10)||0);
+    const out=[];
+    q('#ofeOrigins').value.split(/\r?\n/).forEach(raw=>{
+      const line=raw.trim(); if(!line)return;
+      const m=line.match(COORD); if(!m)return;
+      const rest=line.replace(m[0],' ').toLowerCase();
+      let unit=defUnit,role=defRole,delay=defDelay;
+      rest.split(/[\s,]+/).filter(Boolean).forEach(tok=>{
+        if(ROLE_ALIAS[tok]!==undefined)role=ROLE_ALIAS[tok];   // rol antes que unidad: "noble" es rol, no unidad
+        else if(UNIT_ALIAS[tok])unit=UNIT_ALIAS[tok];
+        else if(/^\d+$/.test(tok))delay=Number(tok);
+      });
+      if(role==='noble')unit='snob';
+      out.push({coord:m[0],x:+m[1],y:+m[2],unit,role,delay});
+    });
+    return out;
+  }
+
+  let RESULT=null;
+  function plan(){
+    const wSpeed=parseFloat(q('#ofeWorldSpeed').value)||1, uSpeed=parseFloat(q('#ofeUnitSpeed').value)||1;
+    const targets=parseTargets(), origins=parseOrigins();
+    if(!targets.length){toast('Añade al menos un objetivo');return;}
+    if(!origins.length){toast('Añade al menos un pueblo origen');return;}
+    if(targets.some(t=>!t.arrival)){toast('Revisa la hora de llegada (DD-MM-YYYY HH:mm:ss)');return;}
+    const travelMs=(o,t)=>distXY(o,t)*UNIT_MIN[o.unit]*60000/(uSpeed*wSpeed);
+
+    const slots=[];
+    targets.forEach((t,ti)=>{
+      for(let i=0;i<t.nobles;i++)slots.push({t,ti,type:'noble'});
+      for(let i=0;i<t.attacks;i++)slots.push({t,ti,type:'atk'});
+      for(let i=0;i<t.support;i++)slots.push({t,ti,type:'sup'});
+    });
+
+    const used=new Array(origins.length).fill(false);
+    const rows=[], unfilled=[];
+    for(const slot of slots){
+      let chosen=null;
+      for(let tol=0;tol<=240&&!chosen;tol+=5){
+        let best=null,bestI=-1;
+        for(let i=0;i<origins.length;i++){
+          if(used[i])continue;
+          const o=origins[i]; if(o.role!==slot.type)continue;
+          const tms=travelMs(o,slot.t);
+          const arrival=slot.t.arrival.getTime()+(o.delay||0)*1000;
+          const launch=new Date(arrival-tms);
+          if(!hourAllowed(launch,tol))continue;
+          if(!best||tms<best.tms){best={o,tms,arrival,launch};bestI=i;}
+        }
+        if(best){chosen={...best,i:bestI};}
+      }
+      if(chosen){
+        used[chosen.i]=true;
+        rows.push({launch:chosen.launch,arrival:new Date(chosen.arrival),origin:chosen.o,target:slot.t,type:slot.type,unit:chosen.o.unit,dist:distXY(chosen.o,slot.t),travel:chosen.tms,inWin:strictWin(chosen.launch)});
+      } else unfilled.push(slot);
+    }
+
+    const fill=targets.map(t=>({coord:t.coord,needAtk:t.attacks,needNob:t.nobles,needSup:t.support,gotAtk:0,gotNob:0,gotSup:0}));
+    rows.forEach(r=>{const f=fill[targets.indexOf(r.target)];if(r.type==='atk')f.gotAtk++;else if(r.type==='noble')f.gotNob++;else f.gotSup++;});
+
+    RESULT={rows,unfilled,fill,targets,outWin:rows.filter(r=>!r.inWin).length,unused:used.filter(u=>!u).length};
+    save(); render();
+    toast(`${rows.length} lanzamientos · ${unfilled.length} sin cubrir`);
+  }
+
+  const typeLabel=t=>t==='atk'?'Ataque':(t==='noble'?'Noble':'Apoyo');
+
+  function render(){
+    if(!RESULT)return;
+    const r=RESULT;
+    q('#ofeResults').style.display='block';
+    q('#ofeSummary').innerHTML=
+      `<span class="stat-chip blue">${r.rows.length} lanzamientos</span>`+
+      `<span class="stat-chip green">${r.fill.filter(f=>f.gotAtk>=f.needAtk&&f.gotNob>=f.needNob&&f.gotSup>=f.needSup).length}/${r.targets.length} objetivos completos</span>`+
+      (r.unfilled.length?`<span class="stat-chip red">${r.unfilled.length} huecos sin cubrir</span>`:'')+
+      (r.outWin?`<span class="stat-chip orange">${r.outWin} fuera de franja</span>`:'')+
+      (r.unused?`<span class="stat-chip orange">${r.unused} pueblos sin usar</span>`:'');
+    q('#ofeFill').innerHTML=r.fill.map(f=>{
+      const full=f.gotAtk>=f.needAtk&&f.gotNob>=f.needNob&&f.gotSup>=f.needSup;
+      const parts=[`${f.gotAtk}/${f.needAtk} atk`];
+      if(f.needNob)parts.push(`${f.gotNob}/${f.needNob} nob`);
+      if(f.needSup)parts.push(`${f.gotSup}/${f.needSup} apo`);
+      return `<span class="${full?'full':'part'}">${f.coord}: ${parts.join(' · ')}</span>`;
+    }).join('');
+    const sort=q('#ofeSort').value;
+    let rows=[...r.rows];
+    if(sort==='launch')rows.sort((a,b)=>a.launch-b.launch);
+    else rows.sort((a,b)=>r.targets.indexOf(a.target)-r.targets.indexOf(b.target)||a.launch-b.launch);
+    const body=rows.map((row,i)=>`<tr class="${row.inWin?'':'warn'}"><td>${i+1}</td><td>${fmtDT(row.launch)}</td><td>${fmtDT(row.arrival)}</td><td>${row.origin.coord}</td><td>${row.target.coord}</td><td><span class="ofe-badge ${row.type}">${typeLabel(row.type)}</span></td><td>${UNIT_LABEL[row.unit]}</td><td>${row.dist.toFixed(1)}</td><td>${fmtDur(row.travel)}</td></tr>`).join('');
+    q('#ofeTable').innerHTML=`<thead><tr><th>#</th><th>Lanzamiento</th><th>Llegada</th><th>Origen</th><th>Objetivo</th><th>Tipo</th><th>Unidad</th><th>Campos</th><th>Duración</th></tr></thead><tbody>${body}</tbody>`;
+    q('#ofePlanDesc').textContent=`${rows.length} comandos · ordenado por ${sort==='launch'?'hora de lanzamiento':'objetivo'}`;
+  }
+
+  function exportCSV(){
+    if(!RESULT)return;
+    const rows=[...RESULT.rows].sort((a,b)=>a.launch-b.launch);
+    let out='#,lanzamiento,llegada,origen,objetivo,tipo,unidad,distancia,duracion\n';
+    rows.forEach((r,i)=>{out+=`${i+1},${fmtDT(r.launch)},${fmtDT(r.arrival)},${r.origin.coord},${r.target.coord},${typeLabel(r.type)},${UNIT_LABEL[r.unit]},${r.dist.toFixed(1)},${fmtDur(r.travel)}\n`;});
+    copy(out,'CSV copiado ✔');
+  }
+  function exportBB(){
+    if(!RESULT)return;
+    const rows=[...RESULT.rows].sort((a,b)=>a.launch-b.launch);
+    let out='[table][**]#[||]Lanzamiento[||]Llegada[||]Origen[||]Objetivo[||]Tipo[||]Unidad[/**]\n';
+    rows.forEach((r,i)=>{out+=`[*]${i+1}[|]${fmtDT(r.launch)}[|]${fmtDT(r.arrival)}[|][coord]${r.origin.coord}[/coord][|][coord]${r.target.coord}[/coord][|]${typeLabel(r.type)}[|]${UNIT_LABEL[r.unit]}[/*]\n`;});
+    out+='[/table]';
+    copy(out,'BBCode copiado ✔');
+  }
+
+  function save(){try{localStorage.setItem(LS,JSON.stringify({
+    ws:q('#ofeWorldSpeed').value,us:q('#ofeUnitSpeed').value,arr:q('#ofeArrival').value,
+    atk:q('#ofeDefAtk').value,nob:q('#ofeDefNoble').value,unit:q('#ofeDefUnit').value,role:q('#ofeDefRole').value,delay:q('#ofeDefDelay').value,
+    targets:q('#ofeTargets').value,origins:q('#ofeOrigins').value,hours:[...enabledHours]
+  }));}catch(e){}}
+  function load(){try{const s=JSON.parse(localStorage.getItem(LS));if(!s)return;
+    if(s.ws!=null)q('#ofeWorldSpeed').value=s.ws;if(s.us!=null)q('#ofeUnitSpeed').value=s.us;if(s.arr)q('#ofeArrival').value=s.arr;
+    if(s.atk!=null)q('#ofeDefAtk').value=s.atk;if(s.nob!=null)q('#ofeDefNoble').value=s.nob;if(s.unit)q('#ofeDefUnit').value=s.unit;if(s.role)q('#ofeDefRole').value=s.role;if(s.delay!=null)q('#ofeDefDelay').value=s.delay;
+    if(s.targets)q('#ofeTargets').value=s.targets;if(s.origins)q('#ofeOrigins').value=s.origins;
+    if(Array.isArray(s.hours))enabledHours=new Set(s.hours);
+  }catch(e){}}
+  function clearAll(){q('#ofeTargets').value='';q('#ofeOrigins').value='';q('#ofeResults').style.display='none';RESULT=null;save();toast('Limpiado');}
+
+  // poblar select de unidades
+  (function(){const sel=q('#ofeDefUnit');['ram','axe','light','marcher','spear','sword','archer','heavy','catapult','spy','knight','snob'].forEach(u=>{const o=document.createElement('option');o.value=u;o.textContent=UNIT_LABEL[u]+' · '+UNIT_MIN[u]+' min/campo';sel.appendChild(o);});sel.value='ram';})();
+
+  load();
+  buildHours();
+
+  q('#ofePlan').addEventListener('click',plan);
+  q('#ofeClear').addEventListener('click',clearAll);
+  q('#ofeSort').addEventListener('change',render);
+  q('#ofeCopyCsv').addEventListener('click',exportCSV);
+  q('#ofeCopyBB').addEventListener('click',exportBB);
+  q('#ofeHoursAll').addEventListener('click',()=>setHours(new Set([...Array(24).keys()])));
+  q('#ofeHoursNone').addEventListener('click',()=>setHours(new Set()));
+  q('#ofeHoursNight').addEventListener('click',()=>{const s=new Set([...Array(24).keys()]);[2,3,4,5,6,7].forEach(h=>s.delete(h));setHours(s);});
+  ['#ofeWorldSpeed','#ofeUnitSpeed','#ofeArrival','#ofeDefAtk','#ofeDefNoble','#ofeDefUnit','#ofeDefRole','#ofeDefDelay','#ofeTargets','#ofeOrigins'].forEach(id=>{const el=q(id);if(el)el.addEventListener('change',save);});
 })();
 </script>
 </body>
