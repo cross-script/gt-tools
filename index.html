@@ -598,6 +598,11 @@
                 <button class="btn btn-ghost btn-sm" id="twaLoadLast">Cargar último</button>
                 <button class="btn btn-ghost btn-sm" id="twaClear">Limpiar</button>
               </div>
+              <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-top:12px;padding:10px 12px;border:1px dashed var(--border2);border-radius:var(--radius);background:rgba(59,130,246,0.05);">
+                💡 ¿Eres admin/duque de la tribu y no tienes el CSV? Sácalo con el script
+                <a href="#" onclick="showTab('scripts');return false;" style="color:var(--cyan);font-weight:700;text-decoration:none;">«Sacar tropas de la tribu»</a>
+                (en la pestaña Scripts) y pega aquí lo que exporte.
+              </div>
               <details class="twa-help">
                 <summary>¿Qué cuenta como OFF / DEF?</summary>
                 <p><b>DEF</b> = lanza + espada + arquero + caballería pesada · <b>OFF</b> = hacha + ligera + arquero a caballo + ariete + catapulta. Espía, paladín y milicia se ignoran. Ratio OFF ≥ 65% → OFF · ≤ 35% → DEF · resto → Mixto.</p>
@@ -1030,6 +1035,8 @@ Rename: ['Ataque', 'Apoyo'],
 Name: ' %unit% (%coords%) %player% - %duration% '
 })</script>
 
+<script type="text/plain" id="code-tropas-tribu">javascript: $.getScript('https://dl.dropbox.com/s/0s2b0ur9cqpzic2/tribeInfo.js?dl=0');</script>
+
 <!-- ═══ LÓGICA ═══ -->
 <script>
 const SHOTS = 'Scrips%20Legales/';
@@ -1126,6 +1133,19 @@ const SCRIPTS = [
       SHOTS + 'Nueva%20carpeta/Captura%20de%20pantalla%202026-05-31%20211435.png'
     ],
     desc: 'Renombra de golpe todas las órdenes etiquetadas como “Ataque” o “Apoyo” a un formato claro: %unit% (%coords%) %player% - %duration%. Así ves de un vistazo unidad, objetivo, jugador y tiempo en la lista de comandos.'
+  },
+  {
+    title: 'Sacar Tropas de la Tribu',
+    author: 'Tribe Troop Counter',
+    status: 'live',
+    codeId: 'code-tropas-tribu',
+    imgs: [
+      SHOTS + 'SacarTropasTribu/1.png',
+      SHOTS + 'SacarTropasTribu/2.png',
+      SHOTS + 'SacarTropasTribu/3.png',
+      SHOTS + 'SacarTropasTribu/4.png'
+    ],
+    desc: 'Recuento de tropas (o defensas) de TODA la tribu en un clic. Solo funciona para administradores/duques (lee los pueblos de los miembros). Eliges leer tropas o defensas, filtras si quieres y exportas un CSV con las tropas de cada pueblo — justo el formato que pide el “Analizador de tropas” para planificar el OFF de la tribu.'
   }
 ];
 
